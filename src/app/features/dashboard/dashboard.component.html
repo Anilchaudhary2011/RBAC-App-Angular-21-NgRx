@@ -1,12 +1,16 @@
-@if (canManageUsers$ | async) {
-  <div class="dashboard">
-    <header class="dashboard__header">
-      <div>
-        <h1 class="dashboard__title">User Dashboard</h1>
-        <p class="dashboard__subtitle">
+<div class="dashboard">
+  <header class="dashboard__header">
+    <div>
+      <h1 class="dashboard__title">User Dashboard</h1>
+      <p class="dashboard__subtitle">
+        @if (canCreateUsers$ | async) {
           Manage your team members and view role distribution in real time.
-        </p>
-      </div>
+        } @else {
+          View your team members and role distribution in real time.
+        }
+      </p>
+    </div>
+    @if (canCreateUsers$ | async) {
       <button
         type="button"
         class="btn btn-primary"
@@ -20,204 +24,147 @@
           <span>+ Add User</span>
         }
       </button>
-    </header>
+    }
+  </header>
 
-    <section class="stats">
-      <div class="stat-card">
-        <span class="stat-card__label">Total Users</span>
-        <span class="stat-card__value">{{ totalUsers }}</span>
-      </div>
-      <div class="stat-card stat-card--admin">
-        <span class="stat-card__label">Admins</span>
-        <span class="stat-card__value">{{ roleDistribution['Admin'] }}</span>
-      </div>
-      <div class="stat-card stat-card--editor">
-        <span class="stat-card__label">Editors</span>
-        <span class="stat-card__value">{{ roleDistribution['Editor'] }}</span>
-      </div>
-      <div class="stat-card stat-card--viewer">
-        <span class="stat-card__label">Viewers</span>
-        <span class="stat-card__value">{{ roleDistribution['Viewer'] }}</span>
-      </div>
-    </section>
+  <section class="stats">
+    <div class="stat-card">
+      <span class="stat-card__label">Total Users</span>
+      <span class="stat-card__value">{{ totalUsers }}</span>
+    </div>
+    <div class="stat-card stat-card--admin">
+      <span class="stat-card__label">Admins</span>
+      <span class="stat-card__value">{{ roleDistribution['Admin'] }}</span>
+    </div>
+    <div class="stat-card stat-card--editor">
+      <span class="stat-card__label">Editors</span>
+      <span class="stat-card__value">{{ roleDistribution['Editor'] }}</span>
+    </div>
+    <div class="stat-card stat-card--viewer">
+      <span class="stat-card__label">Viewers</span>
+      <span class="stat-card__value">{{ roleDistribution['Viewer'] }}</span>
+    </div>
+  </section>
 
-    <section class="main-grid">
-      <div class="panel panel--table">
-        <div class="panel__header">
-          <h2 class="panel__title">Users</h2>
+  <section class="main-grid">
+    <div class="panel panel--table">
+      <div class="panel__header">
+        <h2 class="panel__title">Users</h2>
 
-          <div class="panel__filters">
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Search by name or email"
-              [value]="searchTerm"
-              (input)="onSearchChange($any($event.target).value)"
-            />
-            <select
-              class="form-control"
-              [value]="roleFilter"
-              (change)="onRoleFilterChange($any($event.target).value)"
-            >
-              <option value="">All Roles</option>
-              @for (role of roles; track role) {
-                <option [value]="role">{{ role }}</option>
-              }
-            </select>
-          </div>
-        </div>
-
-        <div class="table-wrapper">
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (user of pagedUsers; track trackById($index, user)) {
-                <tr>
-                  <td>
-                    <div class="user-cell">
-                      <div class="user-avatar">{{ user.displayName.charAt(0) }}</div>
-                      <span>{{ user.displayName }}</span>
-                    </div>
-                  </td>
-                  <td>{{ user.email }}</td>
-                  <td>
-                    <span [class]="getRoleBadgeClass(user.role)">{{ user.role }}</span>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="3" class="empty-state">No users match your filters.</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        @if (filteredUsers.length > pageSize) {
-          <div class="pagination">
-            <button
-              type="button"
-              class="pagination__btn"
-              (click)="goToPage(currentPage - 1)"
-              [disabled]="currentPage === 1"
-            >
-              ‹
-            </button>
-            @for (page of pageNumbers; track page) {
-              <button
-                type="button"
-                class="pagination__btn"
-                [class.is-active]="page === currentPage"
-                (click)="goToPage(page)"
-              >
-                {{ page }}
-              </button>
+        <div class="panel__filters">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search by name or email"
+            [value]="searchTerm"
+            (input)="onSearchChange($any($event.target).value)"
+          />
+          <select
+            class="form-control"
+            [value]="roleFilter"
+            (change)="onRoleFilterChange($any($event.target).value)"
+          >
+            <option value="">All Roles</option>
+            @for (role of roles; track role) {
+              <option [value]="role">{{ role }}</option>
             }
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of pagedUsers; track trackById($index, user)) {
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar">{{ user.displayName.charAt(0) }}</div>
+                    <span>{{ user.displayName }}</span>
+                  </div>
+                </td>
+                <td>{{ user.email }}</td>
+                <td>
+                  <span [class]="getRoleBadgeClass(user.role)">{{ user.role }}</span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="empty-state">No users match your filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (filteredUsers.length > pageSize) {
+        <div class="pagination">
+          <button
+            type="button"
+            class="pagination__btn"
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+          >
+            ‹
+          </button>
+          @for (page of pageNumbers; track page) {
             <button
               type="button"
               class="pagination__btn"
-              (click)="goToPage(currentPage + 1)"
-              [disabled]="currentPage === totalPages"
+              [class.is-active]="page === currentPage"
+              (click)="goToPage(page)"
             >
-              ›
+              {{ page }}
             </button>
+          }
+          <button
+            type="button"
+            class="pagination__btn"
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+          >
+            ›
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="panel panel--chart">
+      <div class="panel__header">
+        <h2 class="panel__title">Role Distribution</h2>
+      </div>
+      <div class="chart-container">
+        @if (usersLoading$ | async) {
+          <div class="chart-loading">
+            <div class="spinner spinner--dark"></div>
+            <span>Loading chart…</span>
           </div>
         }
-      </div>
-
-      <div class="panel panel--chart">
-        <div class="panel__header">
-          <h2 class="panel__title">Role Distribution</h2>
+        <div class="chart-canvas-wrap">
+          <canvas
+            baseChart
+            [type]="chartType"
+            [data]="chartData"
+            [options]="chartOptions"
+          ></canvas>
         </div>
-        <div class="chart-container">
-          @if (isChartLoading) {
-            <div class="chart-loading">
-              <div class="spinner spinner--dark"></div>
-              <span>Loading chart…</span>
-            </div>
-          }
-          <canvas #chartCanvas></canvas>
-          <ul class="chart-legend">
-            <li><span class="chart-legend__dot chart-legend__dot--admin"></span> Admin</li>
-            <li><span class="chart-legend__dot chart-legend__dot--editor"></span> Editor</li>
-            <li><span class="chart-legend__dot chart-legend__dot--viewer"></span> Viewer</li>
-          </ul>
-        </div>
+        <ul class="chart-legend">
+          <li><span class="chart-legend__dot chart-legend__dot--admin"></span> Admin</li>
+          <li><span class="chart-legend__dot chart-legend__dot--editor"></span> Editor</li>
+          <li><span class="chart-legend__dot chart-legend__dot--viewer"></span> Viewer</li>
+        </ul>
       </div>
-    </section>
-
-    <ng-container #modalHost></ng-container>
-  </div>
-} @else {
-  <section class="page">
-    <header class="page-header">
-      <h1>Dashboard</h1>
-      <p>Overview of your role and permissions in this application.</p>
-    </header>
-
-    @if (currentUser$ | async; as user) {
-      <div class="grid">
-        <article class="card">
-          <h2>Profile</h2>
-          <dl>
-            <div>
-              <dt>Name</dt>
-              <dd>{{ user.displayName }}</dd>
-            </div>
-            <div>
-              <dt>Email</dt>
-              <dd>{{ user.email }}</dd>
-            </div>
-            <div>
-              <dt>Role</dt>
-              <dd><span class="role-pill">{{ user.role }}</span></dd>
-            </div>
-          </dl>
-        </article>
-
-        <article class="card">
-          <h2>Your permissions</h2>
-          @if (currentRole$ | async; as role) {
-            <ul class="permission-list">
-              @for (permission of rolePermissions[role]; track permission) {
-                <li>{{ permission }}</li>
-              }
-            </ul>
-          }
-        </article>
-
-        <article class="card card-wide">
-          <h2>Role capabilities</h2>
-          <div class="role-matrix">
-            <div class="role-row role-header">
-              <span>Role</span>
-              <span>Dashboard</span>
-              <span>View content</span>
-              <span>Edit content</span>
-              <span>Manage users</span>
-              <span>Create users</span>
-            </div>
-            <div class="role-row">
-              <span>Admin</span>
-              <span>✓</span><span>✓</span><span>✓</span><span>✓</span><span>✓</span>
-            </div>
-            <div class="role-row">
-              <span>Editor</span>
-              <span>✓</span><span>✓</span><span>✓</span><span>—</span><span>—</span>
-            </div>
-            <div class="role-row">
-              <span>Viewer</span>
-              <span>✓</span><span>✓</span><span>—</span><span>—</span><span>—</span>
-            </div>
-          </div>
-        </article>
-      </div>
-    }
+    </div>
   </section>
-}
+
+  @if (canCreateUsers$ | async) {
+    <ng-container #modalHost></ng-container>
+  }
+</div>
