@@ -1,0 +1,65 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Dashboard</h1>
+    <p>Overview of your role and permissions in this application.</p>
+  </header>
+
+  @if (currentUser$ | async; as user) {
+    <div class="grid">
+      <article class="card">
+        <h2>Profile</h2>
+        <dl>
+          <div>
+            <dt>Name</dt>
+            <dd>{{ user.displayName }}</dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd>{{ user.email }}</dd>
+          </div>
+          <div>
+            <dt>Role</dt>
+            <dd><span class="role-pill">{{ user.role }}</span></dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="card">
+        <h2>Your permissions</h2>
+        @if (currentRole$ | async; as role) {
+          <ul class="permission-list">
+            @for (permission of rolePermissions[role]; track permission) {
+              <li>{{ permission }}</li>
+            }
+          </ul>
+        }
+      </article>
+
+      <article class="card card-wide">
+        <h2>Role capabilities</h2>
+        <div class="role-matrix">
+          <div class="role-row role-header">
+            <span>Role</span>
+            <span>Dashboard</span>
+            <span>View content</span>
+            <span>Edit content</span>
+            <span>Manage users</span>
+            <span>Create users</span>
+          </div>
+          <div class="role-row">
+            <span>Admin</span>
+            <span>✓</span><span>✓</span><span>✓</span><span>✓</span><span>✓</span>
+          </div>
+          <div class="role-row">
+            <span>Editor</span>
+            <span>✓</span><span>✓</span><span>✓</span><span>—</span><span>—</span>
+          </div>
+          <div class="role-row">
+            <span>Viewer</span>
+            <span>✓</span><span>✓</span><span>—</span><span>—</span><span>—</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  }
+</section>

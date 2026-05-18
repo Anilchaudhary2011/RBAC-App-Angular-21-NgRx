@@ -1,0 +1,71 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.card-wide {
+  grid-column: 1 / -1;
+}
+
+dl {
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+dl div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+dt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.role-pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 0.85rem;
+}
+
+.permission-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #334155;
+}
+
+.role-matrix {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.role-row {
+  display: grid;
+  grid-template-columns: 1.2fr repeat(5, 1fr);
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.role-header {
+  font-weight: 600;
+  background: #f1f5f9;
+}
+
+.role-row:not(.role-header) {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}

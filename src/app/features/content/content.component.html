@@ -1,0 +1,26 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Content</h1>
+    <p>All authenticated users can view content. Editors and Admins can edit it.</p>
+  </header>
+
+  <article class="card">
+    <h2>Published content</h2>
+    <p class="content-body">{{ content() }}</p>
+  </article>
+
+  <article class="card" *appHasPermission="Permission.EditContent">
+    <h2>Edit content</h2>
+    <form [formGroup]="editForm" (ngSubmit)="save()">
+      <label>
+        Content body
+        <textarea formControlName="body" rows="6"></textarea>
+      </label>
+      <button type="submit" class="btn btn-primary">Save changes</button>
+    </form>
+  </article>
+
+  @if (!canEdit()) {
+    <p class="readonly-note">Your role is read-only for content editing.</p>
+  }
+</section>

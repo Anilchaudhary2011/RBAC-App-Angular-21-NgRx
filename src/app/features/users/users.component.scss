@@ -1,0 +1,52 @@
+.users-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+input,
+select {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.45rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.65rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .users-layout {
+    grid-template-columns: 1fr;
+  }
+}

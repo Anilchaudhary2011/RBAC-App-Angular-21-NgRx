@@ -1,0 +1,65 @@
+<section class="page">
+  <header class="page-header">
+    <h1>User management</h1>
+    <p>Admins can create users and assign any role.</p>
+  </header>
+
+  @if (error$ | async; as error) {
+    <p class="alert alert-error" role="alert">{{ error }}</p>
+  }
+
+  <div class="users-layout">
+    <article class="card" *appHasPermission="Permission.CreateUsers">
+      <h2>Create user</h2>
+      <form [formGroup]="createForm" (ngSubmit)="createUser()">
+        <label>
+          Display name
+          <input type="text" formControlName="displayName" />
+        </label>
+        <label>
+          Email
+          <input type="email" formControlName="email" />
+        </label>
+        <label>
+          Password
+          <input type="password" formControlName="password" />
+        </label>
+        <label>
+          Role
+          <select formControlName="role">
+            @for (role of roleOptions; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </label>
+        <button type="submit" class="btn btn-primary" [disabled]="loading$ | async">
+          Create user
+        </button>
+      </form>
+    </article>
+
+    <article class="card card-table">
+      <h2>All users</h2>
+      @if (users$ | async; as users) {
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users; track user.id) {
+              <tr>
+                <td>{{ user.displayName }}</td>
+                <td>{{ user.email }}</td>
+                <td><span class="role-pill">{{ user.role }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </article>
+  </div>
+</section>

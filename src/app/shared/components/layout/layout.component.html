@@ -1,0 +1,33 @@
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">RB</span>
+      <span class="brand-text">RBAC Portal</span>
+    </div>
+
+    <nav class="nav">
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/content" routerLinkActive="active">Content</a>
+      <a
+        *appHasPermission="Permission.ManageUsers"
+        routerLink="/users"
+        routerLinkActive="active"
+      >
+        User Management
+      </a>
+    </nav>
+
+    @if (currentUser$ | async; as user) {
+      <div class="user-panel">
+        <p class="user-name">{{ user.displayName }}</p>
+        <p class="user-meta">{{ user.email }}</p>
+        <span class="role-badge" [attr.data-role]="user.role">{{ user.role }}</span>
+        <button type="button" class="btn btn-ghost" (click)="logout()">Sign out</button>
+      </div>
+    }
+  </aside>
+
+  <main class="main">
+    <router-outlet />
+  </main>
+</div>
