@@ -1,82 +1,84 @@
 import { AsyncPipe } from '@angular/common';
-import {
-  AfterViewInit,
-  Component,
-  DestroyRef,
-  ElementRef,
-  OnInit,
-  ViewChild,
-  ViewContainerRef,
-  inject,
-} from '@angular/core';
+import { Component, DestroyRef, OnInit, ViewContainerRef, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
-import { filter, take } from 'rxjs';
-import { Permission, ROLE_PERMISSIONS } from '../../core/models/permission';
+import { ChartConfiguration, ChartData } from 'chart.js';
+import { BaseChartDirective } from 'ng2-charts';
+import { Permission } from '../../core/models/permission';
 import { USER_ROLE_OPTIONS, UserRole } from '../../core/models/user-role';
 import { User } from '../../core/models/user';
 import { UsersActions } from '../../store/auth/auth.actions';
-import { selectCurrentUser, selectCurrentRole, selectHasPermission } from '../../store/auth/auth.selectors';
+import { selectHasPermission } from '../../store/auth/auth.selectors';
 import { selectUsers, selectUsersLoading } from '../../store/users/users.selectors';
 
 type RoleCountKey = 'Admin' | 'Editor' | 'Viewer';
 
+const ROLE_CHART_LABELS: RoleCountKey[] = ['Admin', 'Editor', 'Viewer'];
+const ROLE_CHART_COLORS = ['#6366f1', '#0ea5e9', '#14b8a6'];
+
 @Component({
   selector: 'app-dashboard',
-  imports: [AsyncPipe],
+  imports: [AsyncPipe, BaseChartDirective],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent implements OnInit, AfterViewInit {
+export class DashboardComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly destroyRef = inject(DestroyRef);
 
-  @ViewChild('chartCanvas') private chartCanvas?: ElementRef<HTMLCanvasElement>;
   @ViewChild('modalHost', { read: ViewContainerRef }) private modalHost?: ViewContainerRef;
 
-  readonly currentUser$ = this.store.select(selectCurrentUser);
-  readonly currentRole$ = this.store.select(selectCurrentRole);
-  readonly canManageUsers$ = this.store.select(selectHasPermission(Permission.ManageUsers));
-  readonly users$ = this.store.select(selectUsers);
+  readonly canCreateUsers$ = this.store.select(selectHasPermission(Permission.CreateUsers));
   readonly usersLoading$ = this.store.select(selectUsersLoading);
-  readonly rolePermissions = ROLE_PERMISSIONS;
-  readonly UserRole = UserRole;
-  readonly Permission = Permission;
+  private readonly users$ = this.store.select(selectUsers);
   readonly roles = USER_ROLE_OPTIONS;
   readonly pageSize = 6;
+
+  readonly chartType = 'doughnut' as const;
+  chartData: ChartData<'doughnut'> = {
+    labels: [...ROLE_CHART_LABELS],
+    datasets: [
+      {
+        data: [0, 0, 0],
+        backgroundColor: [...ROLE_CHART_COLORS],
+        borderWidth: 0,
+        hoverOffset: 6,
+      },
+    ],
+  };
+  chartOptions: ChartConfiguration<'doughnut'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: true,
+    cutout: '62%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const value = ctx.parsed ?? 0;
+            const total = (ctx.dataset.data as number[]).reduce((sum, n) => sum + n, 0);
+            const pct = total ? Math.round((value / total) * 100) : 0;
+            return `${ctx.label}: ${value} (${pct}%)`;
+          },
+        },
+      },
+    },
+  };
 
   searchTerm = '';
   roleFilter = '';
   currentPage = 1;
-  isChartLoading = true;
 
   private allUsers: User[] = [];
-  private chartReady = false;
 
   ngOnInit(): void {
-    this.canManageUsers$
-      .pipe(filter(Boolean), take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.store.dispatch(UsersActions.loadUsers()));
+    this.store.dispatch(UsersActions.loadUsers());
 
     this.users$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((users) => {
       this.allUsers = users;
       this.clampCurrentPage();
-      if (this.chartReady) {
-        this.drawRoleChart();
-      }
+      this.updateChartData();
     });
-  }
-
-  ngAfterViewInit(): void {
-    this.canManageUsers$
-      .pipe(filter(Boolean), take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        setTimeout(() => {
-          this.isChartLoading = false;
-          this.drawRoleChart();
-          this.chartReady = true;
-        }, 350);
-      });
   }
 
   get totalUsers(): number {
@@ -162,77 +164,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private drawRoleChart(): void {
-    const canvas = this.chartCanvas?.nativeElement;
-    if (!canvas) {
-      return;
-    }
-
+  private updateChartData(): void {
     const distribution = this.roleDistribution;
-    const values = [
-      { label: 'Admin', value: distribution.Admin, color: '#6366f1' },
-      { label: 'Editor', value: distribution.Editor, color: '#0ea5e9' },
-      { label: 'Viewer', value: distribution.Viewer, color: '#14b8a6' },
-    ];
-    const total = values.reduce((sum, item) => sum + item.value, 0);
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return;
-    }
-
-    const size = 220;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, size, size);
-
-    const center = size / 2;
-    const radius = 78;
-    const innerRadius = 48;
-
-    if (total === 0) {
-      ctx.beginPath();
-      ctx.arc(center, center, radius, 0, Math.PI * 2);
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fill();
-      ctx.fillStyle = '#64748b';
-      ctx.font = '13px Segoe UI, system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('No users yet', center, center + 4);
-      return;
-    }
-
-    let startAngle = -Math.PI / 2;
-    for (const segment of values) {
-      if (!segment.value) {
-        continue;
-      }
-      const slice = (segment.value / total) * Math.PI * 2;
-      const endAngle = startAngle + slice;
-      ctx.beginPath();
-      ctx.moveTo(center, center);
-      ctx.arc(center, center, radius, startAngle, endAngle);
-      ctx.closePath();
-      ctx.fillStyle = segment.color;
-      ctx.fill();
-      startAngle = endAngle;
-    }
-
-    ctx.beginPath();
-    ctx.arc(center, center, innerRadius, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
-
-    ctx.fillStyle = '#0f172a';
-    ctx.font = '600 22px Segoe UI, system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(String(total), center, center - 2);
-    ctx.fillStyle = '#64748b';
-    ctx.font = '12px Segoe UI, system-ui, sans-serif';
-    ctx.fillText('users', center, center + 16);
+    this.chartData = {
+      labels: [...ROLE_CHART_LABELS],
+      datasets: [
+        {
+          data: ROLE_CHART_LABELS.map((role) => distribution[role]),
+          backgroundColor: [...ROLE_CHART_COLORS],
+          borderWidth: 0,
+          hoverOffset: 6,
+        },
+      ],
+    };
   }
 }
