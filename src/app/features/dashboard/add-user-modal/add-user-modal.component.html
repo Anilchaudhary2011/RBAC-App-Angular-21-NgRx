@@ -1,0 +1,41 @@
+<div class="modal-backdrop" (click)="dismiss()" role="presentation"></div>
+<div class="modal" role="dialog" aria-labelledby="add-user-title" aria-modal="true" (click)="$event.stopPropagation()">
+  <header class="modal__header">
+    <h2 id="add-user-title">Add user</h2>
+    <button type="button" class="modal__close" (click)="dismiss()" aria-label="Close">×</button>
+  </header>
+
+  @if (error$ | async; as error) {
+    <p class="modal__error" role="alert">{{ error }}</p>
+  }
+
+  <form class="modal__form" [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Display name
+      <input type="text" formControlName="displayName" autocomplete="name" />
+    </label>
+    <label>
+      Email
+      <input type="email" formControlName="email" autocomplete="email" />
+    </label>
+    <label>
+      Password
+      <input type="password" formControlName="password" autocomplete="new-password" />
+    </label>
+    <label>
+      Role
+      <select formControlName="role">
+        @for (role of roleOptions; track role) {
+          <option [value]="role">{{ role }}</option>
+        }
+      </select>
+    </label>
+
+    <footer class="modal__actions">
+      <button type="button" class="btn btn-ghost-modal" (click)="dismiss()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading$ | async">
+        Create user
+      </button>
+    </footer>
+  </form>
+</div>
